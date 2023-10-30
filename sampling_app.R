@@ -38,11 +38,34 @@ ui <- fluidPage(
   ),
   
   mainPanel(
-    
+    textOutput("sample_proportion"),
+    textOutput("sd"),
+    plotOutput("histogramPlot")
   )
 )
 
 server <- function(input, output, session) {
+  
+  output$sample_proportion <- renderText({
+    text <- paste0('Average Sample Porportion =')
+  }) 
+  
+  output$sd <- renderText({
+    text <- paste0('Standard deviation of sample proportions =')
+  })
+  data <- rnorm(100)  # Example data (replace with your data)
+  output$histogramPlot <- renderPlot({
+    
+    hist(data, main = "", xlab = "Values", col = "lightblue", border = "black")
+    mean_data <- mean(data)
+    sd_data <- sd(data)
+  
+    
+    
+    curve(dnorm(x, mean = mean_data, sd = sd_data), add = TRUE, col = "red", lwd = 2)
+  })
+  
+  
   is_pop_proportion_valid <- reactive({
     input$pop_proportion >= 0 && input$pop_proportion <= 1
   })
@@ -59,8 +82,6 @@ server <- function(input, output, session) {
     is.integer(input$sample_size) && input$sample_size %% 1 == 0
   })
   
-  
-  
 
   output$samplesize_error <- renderText({
     if (is_sample_size_valid()) {
@@ -73,9 +94,6 @@ server <- function(input, output, session) {
     is.integer(input$number_samples) && input$number_samples %% 1 == 0
   })
   
-  
-  
-
   output$number_samples_error <- renderText({
     if (number_samples_valid()) {
       ""
