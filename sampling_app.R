@@ -9,22 +9,31 @@ ui <- fluidPage(
   
   # Sidebar ----
   sidebarPanel(
+      selectInput("dropdown", "Target Parameter",
+                  choices = c("Proportion", "Mean")
+      ),
       numericInput("pop_proportion", "Population Proportion, p (Between 0 and 1)", value = 0, min = 0, max = 1, step = 0.01),
       textOutput("pop_error"),
-      tags$head(tags$style("#pop_error{color: red;
+      
+      numericInput("sample_size", "Sample Size (n) ", value = 1, min = 1, step = 1),
+      textOutput("samplesize_error"),
+      numericInput("number_samples", "Number of Samples (N) ", value = 1, min = 1, step = 1),
+      textOutput("number_samples_error"),
+      tags$head(tags$style(
+        "#pop_proportion { width: 35%; }",
+        "#pop_error{color: red;
                                  font-size: 15px;
                                  font-style: italic;
-                                 }"
+                                 }",
+        "#sample_size { width: 35%; }",
+        "#samplesize_error{color: red;
+                                 font-size: 15px;
+                                 font-style: italic;
+                                 }",
+        "#number_samples { width: 35%; }",
+        "#number_samples_error { color: red; font-size: 15px; font-style: italic; }",
       )
       ),
-      numericInput("sample_size", "Sample Size (n): ", value = 1, min = 1, step = 1),
-      textOutput("samplesize_error"),
-      tags$head(tags$style("#samplesize_error{color: red;
-                                 font-size: 15px;
-                                 font-style: italic;
-                                 }"
-      )
-      )
     
   ),
   
@@ -50,9 +59,25 @@ server <- function(input, output, session) {
     is.integer(input$sample_size) && input$sample_size %% 1 == 0
   })
   
+  
+  
 
   output$samplesize_error <- renderText({
     if (is_sample_size_valid()) {
+      ""
+    } else {
+      "Invalid input. Please enter a whole number"
+    }
+  })
+  number_samples_valid <- reactive({
+    is.integer(input$number_samples) && input$number_samples %% 1 == 0
+  })
+  
+  
+  
+
+  output$number_samples_error <- renderText({
+    if (number_samples_valid()) {
       ""
     } else {
       "Invalid input. Please enter a whole number"
