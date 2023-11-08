@@ -14,9 +14,15 @@ ui <- fluidPage(
                  choices = c("Proportion", "Mean"),
                  selected = character(0),
                  inline = TRUE),
-      
-      numericInput("pop_proportion", "Population Proportion, p (Between 0 and 1)", value = 0, min = 0, max = 1, step = 0.01),
-      textOutput("pop_error"),
+      conditionalPanel(
+        condition = "input.select_params == 'Proportion'",
+        numericInput("pop_proportion", "Population Proportion, p (Between 0 and 1)", value = 0, min = 0, max = 1, step = 0.01),
+        textOutput("pop_error"),
+      ),
+      conditionalPanel(
+        condition = "input.select_params == 'Mean'",
+        numericInput("mean", "Population Mean", value = 0),
+      ),
       
       numericInput("sample_size", "Sample Size (n) ", value = 1, min = 1, step = 1),
       textOutput("samplesize_error"),
@@ -24,6 +30,7 @@ ui <- fluidPage(
       textOutput("number_samples_error"),
       tags$head(tags$style(
         "#pop_proportion { width: 35%; }",
+        "#mean { width: 35%; }",
         "#pop_error{color: red;
                                  font-size: 15px;
                                  font-style: italic;
@@ -53,8 +60,6 @@ ui <- fluidPage(
 # mean dropdown
 
 #binomial, exponential, chi square, normal, t distribution
-
-# add checkbox for normal curve
 
 # add 
 
