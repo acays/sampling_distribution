@@ -9,9 +9,12 @@ ui <- fluidPage(
   
   # Sidebar ----
   sidebarPanel(
-      selectInput("dropdown", "Target Parameter",
-                  choices = c("Proportion", "Mean")
-      ),
+      radioButtons("select_params",
+                 label = "Target Parameters",
+                 choices = c("Proportion", "Mean"),
+                 selected = character(0),
+                 inline = TRUE),
+      
       numericInput("pop_proportion", "Population Proportion, p (Between 0 and 1)", value = 0, min = 0, max = 1, step = 0.01),
       textOutput("pop_error"),
       
@@ -34,6 +37,9 @@ ui <- fluidPage(
         "#number_samples_error { color: red; font-size: 15px; font-style: italic; }",
       )
       ),
+      checkboxInput("display_curve",
+                    label = "Display Normal Curve",
+                    value = FALSE),
     
   ),
   
@@ -43,6 +49,14 @@ ui <- fluidPage(
     plotOutput("histogramPlot")
   )
 )
+
+# mean dropdown
+
+#binomial, exponential, chi square, normal, t distribution
+
+# add checkbox for normal curve
+
+# add 
 
 server <- function(input, output, session) {
   
