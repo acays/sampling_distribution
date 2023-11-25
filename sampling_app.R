@@ -26,7 +26,7 @@ ui <- fluidPage(
       
       numericInput("sample_size", "Sample Size (n) ", value = 1, min = 1, step = 1),
       textOutput("samplesize_error"),
-      numericInput("number_samples", "Number of Samples (N) ", value = 2, min = 2, step = 1),
+      numericInput("number_samples", "Number of Samples (N) ", value = 1, min = 1, step = 1),
       textOutput("number_samples_error"),
       tags$head(tags$style(
         "#pop_proportion { width: 35%; }",
@@ -75,46 +75,48 @@ server <- function(input, output, session) {
   })
   
   
-
+  # manually calculated curve version
   output$histogramPlot <- renderPlot({
-    data <- rbinom(input$number_samples, input$sample_size, input$pop_proportion)/input$sample_size
-    hist_data <- hist(data, freq=FALSE, main = "", xlab = "Values", col = "lightblue", border = "black")
-    mean_data <- mean(data)
-    sd_data <- sd(data)
-
+    data <- rbinom(input$number_samples, input$sample_size, input$pop_proportion) / input$sample_size
+    
+    # Create the histogram without plotting it
+    hist_data <- hist(data, plot = FALSE)
+    
+    # Plot the histogram
+    hist(data, freq = FALSE, main = "", xlab = "Values", col = "lightblue", border = "black")
+    
     if (input$display_curve == TRUE) {
-      p0=input$pop_proportion
-      N=input$number_samples
-      n=input$sample_size
-
-      x = seq( p0-4*sqrt(p0*(1-p0)/n), p0+4*sqrt(p0*(1-p0)/n),length=2000)
-      y = dnorm(x,mean=p0,sd= sqrt(p0*(1-p0)/n))
-
+      p0 <- input$pop_proportion
+      n <- input$sample_size
       
-      # if (max(y) > max(hist_data$density)) {
-      #   print("activated")
-      #   # Calculate new x-axis limits to accommodate the density curve
-      #   new_max <- max(c(max(x), max(hist_data$breaks)))
-      #   
-      #   # Update the xlim outside of the plot rendering
-      #   hist_data$xlim <- c(min(hist_data$breaks), new_max)
-      # }
-      # plot(hist_data, freq=FALSE, main = "", xlab = "Values", col = "lightblue", border = "black")
-      lines(x,y, lty=2,lwd=2,col="red")
+      # Manually calculate x and y values based on the normal distribution
+      x <- seq(p0 - 4 * sqrt(p0 * (1 - p0) / n), p0 + 4 * sqrt(p0 * (1 - p0) / n), length = 2000)
+      y <- dnorm(x, mean = p0, sd = sqrt(p0 * (1 - p0) / n))
+      
+      # Check if the curve exceeds histogram bounds
+      if (max(y) > max(hist_data$density)) {
+        # Scale the y-values to fit within the histogram bounds
+        y <- y * (max(hist_data$density) / max(y))
+      }
+      
+      # Plot the curve
+      lines(x, y, col = "red", lty = 2, lwd = 2)
     }
   })
+  
+  # density curve version, set N to min 2
   # output$histogramPlot <- renderPlot({
   #   data <- rbinom(input$number_samples, input$sample_size, input$pop_proportion)/input$sample_size
-  #   
+  # 
   #   # Create the histogram without plotting it
   #   hist_data <- hist(data, plot = FALSE)
-  #   
+  # 
   #   # Calculate the density curve
   #   density_curve <- density(data)
-  #   
+  # 
   #   # Plot the histogram
   #   hist(data, freq=FALSE, main = "", xlab = "Values", col = "lightblue", border = "black")
-  #   
+  # 
   #   # Plot the density curve, adjusting its data if needed
   #   if (max(density_curve$y) > max(hist_data$density) & input$display_curve == TRUE) {
   #     # Scale the density curve data to fit within the histogram bounds
