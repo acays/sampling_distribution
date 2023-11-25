@@ -72,16 +72,29 @@ server <- function(input, output, session) {
   output$sd <- renderText({
     text <- paste0('Standard deviation of sample proportions =')
   })
-  data <- rnorm(100)  # Example data (replace with your data)
+  
+  
+  
   output$histogramPlot <- renderPlot({
-    
-    hist(data, main = "", xlab = "Values", col = "lightblue", border = "black")
+    data <- rbinom(input$number_samples, input$sample_size, input$pop_proportion)/input$sample_size
+    hist(data, freq=FALSE, main = "", xlab = "Values", col = "lightblue", border = "black")
     mean_data <- mean(data)
     sd_data <- sd(data)
   
     
     
-    curve(dnorm(x, mean = mean_data, sd = sd_data), add = TRUE, col = "red", lwd = 2)
+    #curve(dnorm(x, mean = mean_data, sd = sd_data), add = TRUE, col = "red", lwd = 2)
+    
+    p0=input$pop_proportion
+    N=input$number_samples
+    n=input$sample_size
+    
+    #n=input$number_samples
+    #N=input$sample_size
+    x = seq( p0-4*sqrt(p0*(1-p0)/n), p0+4*sqrt(p0*(1-p0)/n),length=2000)
+    y = dnorm(x,mean=p0,sd= sqrt(p0*(1-p0)/n))
+  
+    lines(x,y, lty=2,lwd=2,col="red")
   })
   
   
