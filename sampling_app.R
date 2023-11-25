@@ -12,11 +12,11 @@ ui <- fluidPage(
       radioButtons("select_params",
                  label = "Target Parameters",
                  choices = c("Proportion", "Mean"),
-                 selected = character(0),
+                 selected = "Proportion",
                  inline = TRUE),
       conditionalPanel(
         condition = "input.select_params == 'Proportion'",
-        numericInput("pop_proportion", "Population Proportion, p (Between 0 and 1)", value = 0, min = 0, max = 1, step = 0.01),
+        numericInput("pop_proportion", "Population Proportion, p (Between 0 and 1)", value = 0.5, min = 0, max = 1, step = 0.01),
         textOutput("pop_error"),
       ),
       conditionalPanel(
@@ -26,7 +26,7 @@ ui <- fluidPage(
       
       numericInput("sample_size", "Sample Size (n) ", value = 1, min = 1, step = 1),
       textOutput("samplesize_error"),
-      numericInput("number_samples", "Number of Samples (N) ", value = 1, min = 1, step = 1),
+      numericInput("number_samples", "Number of Samples (N) ", value = 2, min = 2, step = 1),
       textOutput("number_samples_error"),
       tags$head(tags$style(
         "#pop_proportion { width: 35%; }",
@@ -66,37 +66,65 @@ ui <- fluidPage(
 server <- function(input, output, session) {
   
   output$sample_proportion <- renderText({
-    text <- paste0('Average Sample Porportion =')
+    text <- paste0('Average Sample Porportion = ', input$pop_proportion)
   }) 
   
   output$sd <- renderText({
-    text <- paste0('Standard deviation of sample proportions =')
+    text <- paste0('Standard deviation of sample proportions = ', 
+                   sqrt(input$pop_proportion*(1-input$pop_proportion)/input$sample_size))
   })
   
   
-  
+
   output$histogramPlot <- renderPlot({
     data <- rbinom(input$number_samples, input$sample_size, input$pop_proportion)/input$sample_size
-    hist(data, freq=FALSE, main = "", xlab = "Values", col = "lightblue", border = "black")
+    hist_data <- hist(data, freq=FALSE, main = "", xlab = "Values", col = "lightblue", border = "black")
     mean_data <- mean(data)
     sd_data <- sd(data)
-  
-    
-    
-    #curve(dnorm(x, mean = mean_data, sd = sd_data), add = TRUE, col = "red", lwd = 2)
-    
-    p0=input$pop_proportion
-    N=input$number_samples
-    n=input$sample_size
-    
-    #n=input$number_samples
-    #N=input$sample_size
-    x = seq( p0-4*sqrt(p0*(1-p0)/n), p0+4*sqrt(p0*(1-p0)/n),length=2000)
-    y = dnorm(x,mean=p0,sd= sqrt(p0*(1-p0)/n))
-  
-    lines(x,y, lty=2,lwd=2,col="red")
+
+    if (input$display_curve == TRUE) {
+      p0=input$pop_proportion
+      N=input$number_samples
+      n=input$sample_size
+
+      x = seq( p0-4*sqrt(p0*(1-p0)/n), p0+4*sqrt(p0*(1-p0)/n),length=2000)
+      y = dnorm(x,mean=p0,sd= sqrt(p0*(1-p0)/n))
+
+      
+      # if (max(y) > max(hist_data$density)) {
+      #   print("activated")
+      #   # Calculate new x-axis limits to accommodate the density curve
+      #   new_max <- max(c(max(x), max(hist_data$breaks)))
+      #   
+      #   # Update the xlim outside of the plot rendering
+      #   hist_data$xlim <- c(min(hist_data$breaks), new_max)
+      # }
+      # plot(hist_data, freq=FALSE, main = "", xlab = "Values", col = "lightblue", border = "black")
+      lines(x,y, lty=2,lwd=2,col="red")
+    }
   })
-  
+  # output$histogramPlot <- renderPlot({
+  #   data <- rbinom(input$number_samples, input$sample_size, input$pop_proportion)/input$sample_size
+  #   
+  #   # Create the histogram without plotting it
+  #   hist_data <- hist(data, plot = FALSE)
+  #   
+  #   # Calculate the density curve
+  #   density_curve <- density(data)
+  #   
+  #   # Plot the histogram
+  #   hist(data, freq=FALSE, main = "", xlab = "Values", col = "lightblue", border = "black")
+  #   
+  #   # Plot the density curve, adjusting its data if needed
+  #   if (max(density_curve$y) > max(hist_data$density) & input$display_curve == TRUE) {
+  #     # Scale the density curve data to fit within the histogram bounds
+  #     scaled_density <- density_curve
+  #     scaled_density$y <- scaled_density$y * (max(hist_data$density) / max(density_curve$y))
+  #     lines(scaled_density, col = "red", lty = 2, lwd = 2)
+  #   } else if (input$display_curve == TRUE) {
+  #     lines(density_curve, col = "red", lty = 2, lwd = 2)
+  #   }
+  # })
   
   is_pop_proportion_valid <- reactive({
     input$pop_proportion >= 0 && input$pop_proportion <= 1
